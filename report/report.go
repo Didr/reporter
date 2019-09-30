@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"sync"
 	"text/template"
+	"time"
 
 	"github.com/IzakMarais/reporter/grafana"
 	"github.com/pborman/uuid"
@@ -136,7 +137,7 @@ func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
 	//limit concurrency using a worker pool to avoid overwhelming grafana
 	//for dashboards with many panels.
 	var wg sync.WaitGroup
-	workers := 5
+	workers := 1
 	wg.Add(workers)
 	errs := make(chan error, len(dash.Panels)) //routines can return errors on a channel
 	for i := 0; i < workers; i++ {
@@ -144,6 +145,7 @@ func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
 			defer wg.Done()
 			for p := range panels {
 				err := rep.renderPNG(p)
+				time.Sleep(1 * time.Second)
 				if err != nil {
 					log.Printf("Error creating image for panel: %v", err)
 					errs <- err
